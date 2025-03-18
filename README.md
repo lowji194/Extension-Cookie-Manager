@@ -139,7 +139,7 @@ Dưới đây là đoạn hướng dẫn bổ sung:
    - Sao chép link đó và lưu lại để sử dụng.
 
 2. **Lấy ExpectedKey:**
-   - Sử dụng `ExpectedKey` mà bạn đã định nghĩa trong mã Appscript. Trong mã mẫu này, `ExpectedKey` là `"LeK_TeHncseBf"`.
+   - Sử dụng `ExpectedKey` mà bạn đã định nghĩa trong mã Appscript. Trong mã mẫu này, `ExpectedKey`
 
 ### Thay vào `cloudUrl` và `secretKey` trong extension
 
@@ -152,7 +152,7 @@ Dưới đây là đoạn hướng dẫn bổ sung:
 
 ```javascript
 const cloudUrl = "YOUR_API_LINK_HERE"; // Thay bằng link API của bạn
-const secretKey = "LeK_TeHncseBf"; // Thay bằng ExpectedKey của bạn
+const secretKey = "YOUR_SECRET_HERE"; // Thay bằng ExpectedKey của bạn
 ```
 
 3. **Xóa Comment Các Hàm `fetchFromCloud` và `uploadToDrive`:**
