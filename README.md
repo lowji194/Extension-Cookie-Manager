@@ -7,7 +7,7 @@ Extension này giúp bạn quản lý cookie dễ dàng với các chức năng 
 - Nhấn vào button **Save Cookie** để lưu cookie hiện tại và Upload lên Google Drive nếu bạn đã cài đặt API.
 - Nhấn vào button **Cloud** để tải cookie từ Google Drive về Extension.
 
-### Hướng dẫn cài đặt API Appscript
+### Hướng dẫn cài đặt API Appscript (Có thể bỏ qua nếu không sử dụng tính năng Cloud)
 
 1. **Tạo Dự Án Mới Trên Google Apps Script:**
    - Truy cập [Google Apps Script](https://script.google.com/).
