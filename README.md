@@ -169,7 +169,7 @@ const secretKey = "YOUR_SECRET_HERE"; // Thay bằng ExpectedKey của bạn
 
 3. **Xóa Comment Các Hàm `fetchFromCloud` và `uploadToDrive`:**
    - Kéo xuống dưới cùng của file `popup.js`.
-   - Tìm các hàm `fetchFromCloud` và `uploadToDrive`, xóa comment ở đầu (`/*`) và ở cuối (*/) để kích hoạt
+   - Tìm các hàm `fetchFromCloud` và `uploadToDrive`, xóa comment ở đầu (`/*`) và ở cuối (`*/`) để kích hoạt
 
 ```javascript
 async function fetchFromCloud() {
