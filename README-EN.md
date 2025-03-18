@@ -131,4 +131,48 @@ function doGet(e) {
 - Replace `FolderName` and `ExpectedKey` with the appropriate values.
 - Ensure the storage folder is created in Google Drive.
 
+Sure! Here is the additional instruction in English:
+
+### Get API Link and ExpectedKey
+
+1. **Get API Link:**
+   - After deploying the Appscript project, you will receive the API link from the "Deployments" section.
+   - Copy that link and save it for use.
+
+2. **Get ExpectedKey:**
+   - Use the `ExpectedKey` that you defined in the Appscript code. In the example code, the `ExpectedKey`
+
+### Replace `cloudUrl` and `secretKey` in the extension
+
+1. **Open `popup.js` File:**
+   - Navigate to the `assets` folder in your extension and open the `popup.js` file.
+
+2. **Replace `cloudUrl` and `secretKey`:**
+   - Find and replace the value of `cloudUrl` with the API link you obtained in the previous step.
+   - Find and replace the value of `secretKey` with your `ExpectedKey`.
+
+```javascript
+const cloudUrl = "YOUR_API_LINK_HERE"; // Replace with your API link
+const secretKey = "YOUR_SECRET_HERE"; // Replace with your ExpectedKey
+```
+
+3. **Uncomment the Functions `fetchFromCloud` and `uploadToDrive`:**
+   - Scroll to the bottom of the `popup.js` file.
+   - Find the `fetchFromCloud` and `uploadToDrive` functions, and remove any comment symbols (`//`) to uncomment them.
+
+```javascript
+async function fetchFromCloud() {
+  // Function content
+}
+
+async function uploadToDrive() {
+  // Function content
+}
+```
+
+### Save and Test
+
+- After making these changes, save the `popup.js` file.
+- Restart your extension and verify that the functionalities are working correctly.
+
 Good luck!
