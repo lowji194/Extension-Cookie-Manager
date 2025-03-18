@@ -1,6 +1,10 @@
+[![🇻🇳 Tiếng Việt](https://img.shields.io/badge/Ngôn_ngữ-Tiếng_Việt-red?style=for-the-badge&logo=Google%20Translate)](README.md)
+
 # Extension Cookie Manager
 
 This extension helps you manage cookies easily with the functions of storing and downloading cookies from Google Drive if you have set up the API.
+
+![ImageProjects](image.png)
 
 ## Usage
 
