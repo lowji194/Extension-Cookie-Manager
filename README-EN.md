@@ -9,8 +9,8 @@
    - Copy the following code and paste it into the code editor of the newly created project:
 
 ```javascript
-var FolderName = "Save_Cookie";      // Replace with your storage folder name
-var ExpectedKey = "LeK_TeHncseBf";  // Replace with your security key
+var FolderName = "";      // Replace with your storage folder name
+var ExpectedKey = "";  // Replace with your security key
 
 function getFolderIdByName(foldername) {
   var folders = DriveApp.getFoldersByName(foldername);
