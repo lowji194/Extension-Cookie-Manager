@@ -1,6 +1,10 @@
+[![🇺🇸 English](https://img.shields.io/badge/Language-English-blue?style=for-the-badge&logo=Google%20Translate)](README-EN.md)
+
 # Extension Cookie Manager
 
 Extension này giúp bạn quản lý cookie dễ dàng với các chức năng lưu trữ và tải cookie từ Google Drive nếu bạn đã thiết lập API.
+
+![Hình ảnh dự án](image.png)
 
 ## Sử dụng
 
