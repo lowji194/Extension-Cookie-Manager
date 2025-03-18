@@ -171,7 +171,7 @@ const secretKey = "YOUR_SECRET_HERE"; // Replace with your ExpectedKey
 
 3. **Uncomment the Functions `fetchFromCloud` and `uploadToDrive`:**
    - Scroll to the bottom of the `popup.js` file.
-   - Find the `fetchFromCloud` and `uploadToDrive` functions, and remove any comment symbols (`//`) to uncomment them.
+   - Find the `fetchFromCloud` and `uploadToDrive` functions, remove comments at the beginning (`/*`) and at the end (`*/`) to activate
 
 ```javascript
 async function fetchFromCloud() {
