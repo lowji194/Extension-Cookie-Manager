@@ -1,4 +1,3 @@
-Dưới đây là hướng dẫn cài đặt API Appscript để quản lý cookie, được viết bằng tiếng Việt:
 
 ### Hướng dẫn cài đặt API Appscript
 
@@ -10,8 +9,8 @@ Dưới đây là hướng dẫn cài đặt API Appscript để quản lý cook
    - Sao chép đoạn mã dưới đây và dán vào trình soạn thảo mã của dự án vừa tạo:
 
 ```javascript
-var FolderName = "Save_Cookie";      // Thay tên thư mục lưu trữ của bạn
-var ExpectedKey = "LeK_TeHncseBf";  // Thay bằng key bảo mật của bạn
+var FolderName = "";      // Thay tên thư mục lưu trữ của bạn
+var ExpectedKey = "";  // Thay bằng key bảo mật của bạn
 
 function getFolderIdByName(foldername) {
   var folders = DriveApp.getFoldersByName(foldername);
