@@ -130,4 +130,48 @@ function doGet(e) {
 - Thay đổi `FolderName` và `ExpectedKey` với giá trị phù hợp của bạn.
 - Đảm bảo thư mục lưu trữ đã được tạo trong Google Drive.
 
+Dưới đây là đoạn hướng dẫn bổ sung:
+
+### Lấy Link API và ExpectedKey
+
+1. **Lấy Link API:**
+   - Sau khi triển khai dự án Appscript, bạn sẽ nhận được link API từ mục "Deployments".
+   - Sao chép link đó và lưu lại để sử dụng.
+
+2. **Lấy ExpectedKey:**
+   - Sử dụng `ExpectedKey` mà bạn đã định nghĩa trong mã Appscript. Trong mã mẫu này, `ExpectedKey` là `"LeK_TeHncseBf"`.
+
+### Thay vào `cloudUrl` và `secretKey` trong extension
+
+1. **Mở File `popup.js`:**
+   - Điều hướng đến thư mục `assets` trong extension của bạn và mở file `popup.js`.
+
+2. **Thay Thế `cloudUrl` và `secretKey`:**
+   - Tìm và thay thế giá trị của `cloudUrl` bằng link API bạn đã lấy ở bước trên.
+   - Tìm và thay thế giá trị của `secretKey` bằng `ExpectedKey` của bạn.
+
+```javascript
+const cloudUrl = "YOUR_API_LINK_HERE"; // Thay bằng link API của bạn
+const secretKey = "LeK_TeHncseBf"; // Thay bằng ExpectedKey của bạn
+```
+
+3. **Xóa Comment Các Hàm `fetchFromCloud` và `uploadToDrive`:**
+   - Kéo xuống dưới cùng của file `popup.js`.
+   - Tìm các hàm `fetchFromCloud` và `uploadToDrive`, nếu chúng đang bị comment, hãy xóa các dấu comment (`//`) để kích hoạt chúng.
+
+```javascript
+async function fetchFromCloud() {
+  // Nội dung hàm
+}
+
+async function uploadToDrive() {
+  // Nội dung hàm
+}
+```
+
+### Lưu Và Kiểm Tra
+
+- Sau khi thực hiện các bước trên, lưu lại file `popup.js`.
+- Khởi động lại extension của bạn và kiểm tra xem các chức năng đã hoạt động đúng chưa.
+
 Chúc bạn thành công!
