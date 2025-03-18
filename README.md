@@ -1,3 +1,11 @@
+# Extension Cookie Manager
+
+Extension này giúp bạn quản lý cookie dễ dàng với các chức năng lưu trữ và tải cookie từ Google Drive nếu bạn đã thiết lập API.
+
+## Sử dụng
+
+- Nhấn vào button **Save Cookie** để lưu cookie hiện tại và Upload lên Google Drive nếu bạn đã cài đặt API.
+- Nhấn vào button **Cloud** để tải cookie từ Google Drive về Extension.
 
 ### Hướng dẫn cài đặt API Appscript
 
