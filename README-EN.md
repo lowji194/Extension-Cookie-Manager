@@ -8,7 +8,7 @@ This extension helps you manage cookies easily with the functions of storing and
 
 - Click the **Cloud** button to download cookies from Google Drive to the Extension.
 
-### Installation Guide for Appscript API
+### Installation Guide for Appscript API (Can be skipped if not using Cloud feature)
 
 1. **Create a New Project on Google Apps Script:**
    - Visit [Google Apps Script](https://script.google.com/).
