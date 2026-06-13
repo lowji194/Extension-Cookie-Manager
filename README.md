@@ -135,6 +135,23 @@ Mở extension → tab **Cloud** → nhập Web app URL vừa copy.
 
 ---
 
-## 📄 License
+## ❤️ Đóng góp
 
-MIT
+- Pull request và các ý tưởng cải tiến luôn được chào đón!
+
+---
+
+## 📫 Liên hệ với tôi
+
+- 📞 **SĐT:** 0963 159 294
+- 🌐 **Website:** [lowji194.github.io](https://lowji194.github.io)
+- 📌 **Facebook:** [Lowji194](https://facebook.com/Lowji194)
+
+---
+
+## ☕ Nếu bạn thấy dự án này hữu ích, một ly cà phê từ bạn sẽ là động lực tuyệt vời để mình tiếp tục phát triển thêm!
+
+<p align="center">
+  <img src="https://theloi.io.vn/pay/QR.png?text=QR+Code" alt="Mời cà phê" width="240" />
+</p>
+
