@@ -105,6 +105,7 @@ Trong Spreadsheet → menu **Extensions → Apps Script** → xoá code mặc đ
 ```js
 const DATA_SPREADSHEET_ID = 'SPREADSHEET_ID_HERE'; // ID spreadsheet ở bước 1
 const BACKUP_FOLDER_ID    = 'FOLDER_ID_HERE';       // ID thư mục Drive (để trống '' nếu bỏ qua)
+const API_SECRET_KEY      = 'YOUR_KEY'; Lấy ở tab cloud
 ```
 
 **Bước 4 — Deploy**
