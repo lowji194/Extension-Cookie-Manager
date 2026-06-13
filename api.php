@@ -14,10 +14,13 @@ $backupDir = 'backup/';
 if (!is_dir($dataDir))   mkdir($dataDir,   0755, true);
 if (!is_dir($backupDir)) mkdir($backupDir, 0755, true);
 
-// Đọc JSON body
+// ── CẤU HÌNH KEY BẢO MẬT ────────────────────────────────────────────────────
+define('API_SECRET_KEY', 'D08E4FAA'); // <-- Đổi key tại đây
+
+// ── Đọc JSON body ─────────────────────────────────────────────────────────────
 $input = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $json = file_get_contents('php://input');
+    $json  = file_get_contents('php://input');
     $input = json_decode($json, true) ?? [];
 }
 
@@ -54,6 +57,14 @@ function fail($error, $code = 200) {
     exit;
 }
 
+// ── Xác thực key bảo mật (dùng cho action GET) ───────────────────────────────
+function validateKey() {
+    $key = $_REQUEST['key'] ?? $GLOBALS['input']['key'] ?? '';
+    if ($key !== API_SECRET_KEY) {
+        fail('Xác thực thất bại: key không hợp lệ', 403);
+    }
+}
+
 // ── PING ──────────────────────────────────────────────────────────────────────
 if ($action === 'ping') {
     ok(['status' => 'ok', 'message' => 'PHP Cookie API v2', 'backup_dir' => $backupDir]);
@@ -71,7 +82,7 @@ if ($action === 'save') {
     if ($web === '' || $name === '') fail('Thiếu web hoặc name');
 
     $snapshots = readData($web);
-    $found = false;
+    $found     = false;
 
     foreach ($snapshots as &$snap) {
         if ($snap['name'] === $name) {
@@ -108,7 +119,7 @@ if ($action === 'delete') {
     if ($web === '' || $name === '') fail('Thiếu web hoặc name');
 
     $snapshots = readData($web);
-    $new = array_values(array_filter($snapshots, fn($s) => $s['name'] !== $name));
+    $new       = array_values(array_filter($snapshots, fn($s) => $s['name'] !== $name));
 
     if (count($new) === count($snapshots)) fail('Không tìm thấy snapshot');
 
@@ -135,109 +146,55 @@ if ($action === 'delete_web') {
     ok(['message' => 'Đã xoá toàn bộ dữ liệu của ' . $web]);
 }
 
-// ── LIST (danh sách các web, hoặc danh sách snapshot của một web) ─────────────
-// GET ?action=list                   → tất cả web (tổng quát)
-// GET ?action=list&web=__BACKUP__    → chỉ các snapshot của web đó
-if ($action === 'list') {
-    $web = trim($_REQUEST['web'] ?? $input['web'] ?? '');
+// ── GET (lấy toàn bộ nội dung tất cả file JSON — yêu cầu key bảo mật) ────────
+// GET ?action=get&key=YOUR_SECRET_KEY_HERE
+if ($action === 'get') {
+    validateKey();
 
-    if ($web !== '') {
-        // ── Liệt kê tất cả snapshot của web cụ thể ──
-        $snapshots = readData($web);
-        $result = [];
-        foreach ($snapshots as $snap) {
-            $result[] = [
-                'name'    => $snap['name']    ?? '',
-                'time'    => $snap['time']    ?? $snap['savedAt'] ?? '',
-                'savedAt' => $snap['savedAt'] ?? '',
-            ];
-        }
-        ok(['sheets' => $result, 'count' => count($result)]);
-    }
-
-    // ── Liệt kê tất cả web (không lọc) ──
     $files  = glob($dataDir . '*.json') ?: [];
     $result = [];
+
     foreach ($files as $file) {
-        $safeWeb = basename($file, '.json');
-        $data    = readData($safeWeb);
-        $count   = count($data);
-        if ($count > 0) {
-            // Khôi phục tên web từ tên file (dấu _ → dấu .)
-            // Nhưng giữ nguyên nếu có __ (ví dụ __backup__)
-            $webDisplay = str_replace('_', '.', $safeWeb);
-            $result[] = [
-                'web'         => $webDisplay,
-                'count'       => $count,
-                'lastUpdated' => end($data)['savedAt'] ?? ''
+        $safeWeb   = basename($file, '.json');
+        $snapshots = readData($safeWeb);
+        if (empty($snapshots)) continue;
+
+        // Khôi phục tên web hiển thị
+        $webDisplay = str_replace('_', '.', $safeWeb);
+
+        $parsedSnaps = [];
+        foreach ($snapshots as $snap) {
+            $parsedSnaps[] = [
+                'name'     => $snap['name']     ?? '',
+                'time'     => $snap['time']     ?? '',
+                'timerISO' => $snap['timerISO'] ?? '',
+                'cookies'  => $snap['cookie']   ?? '',
+                'savedAt'  => $snap['savedAt']  ?? '',
             ];
         }
-    }
-    ok(['sheets' => $result]);
-}
 
-// ── GET (lấy một snapshot theo web + name; nếu không có name → lấy mục mới nhất) ──
-// GET ?action=get&web=facebook.com&name=MyAccount
-if ($action === 'get') {
-    $web  = trim($_GET['web']  ?? $_REQUEST['web']  ?? $input['web']  ?? '');
-    $name = trim($_GET['name'] ?? $_REQUEST['name'] ?? $input['name'] ?? '');
-
-    if ($web === '') fail('Thiếu web');
-
-    $data = readData($web);
-    if (empty($data)) fail('Không có dữ liệu cho web này');
-
-    if ($name !== '') {
-        // Tìm chính xác theo name
-        $snap = null;
-        foreach ($data as $s) {
-            if ($s['name'] === $name) { $snap = $s; break; }
-        }
-        if ($snap === null) fail("Không tìm thấy snapshot \"$name\"");
-    } else {
-        // Không truyền name → trả về mục mới nhất
-        $snap = end($data);
+        $result[] = [
+            'web'       => $webDisplay,
+            'count'     => count($parsedSnaps),
+            'snapshots' => $parsedSnaps,
+        ];
     }
 
     ok([
-        'name'     => $snap['name']     ?? '',
-        'savedAt'  => $snap['savedAt']  ?? '',
-        'time'     => $snap['time']     ?? '',
-        'timerISO' => $snap['timerISO'] ?? '',
-        'cookies'  => $snap['cookie']   ?? '',
-        'count'    => 1
+        'total_webs'      => count($result),
+        'total_snapshots' => array_sum(array_column($result, 'count')),
+        'data'            => $result,
     ]);
-}
-
-// ── GET_ALL (lấy toàn bộ snapshot của một web) ────────────────────────────────
-// GET ?action=get_all&web=facebook.com
-if ($action === 'get_all') {
-    $web = trim($_GET['web'] ?? $_REQUEST['web'] ?? $input['web'] ?? '');
-    if ($web === '') fail('Thiếu web');
-
-    $data = readData($web);
-    if (empty($data)) ok(['snapshots' => [], 'count' => 0]);
-
-    $result = [];
-    foreach ($data as $snap) {
-        $result[] = [
-            'name'     => $snap['name']     ?? '',
-            'savedAt'  => $snap['savedAt']  ?? '',
-            'time'     => $snap['time']     ?? '',
-            'timerISO' => $snap['timerISO'] ?? '',
-            'cookies'  => $snap['cookie']   ?? '',
-        ];
-    }
-    ok(['snapshots' => $result, 'count' => count($result)]);
 }
 
 // ── STATS (tổng số web, tổng số snapshot, dung lượng) ────────────────────────
 // GET ?action=stats
 if ($action === 'stats') {
-    $files     = glob($dataDir . '*.json') ?: [];
-    $totalWebs = 0;
+    $files      = glob($dataDir . '*.json') ?: [];
+    $totalWebs  = 0;
     $totalSnaps = 0;
     $totalBytes = 0;
+
     foreach ($files as $file) {
         $safeWeb = basename($file, '.json');
         $data    = readData($safeWeb);
@@ -247,6 +204,7 @@ if ($action === 'stats') {
             $totalBytes += filesize($file);
         }
     }
+
     ok([
         'webs'       => $totalWebs,
         'snapshots'  => $totalSnaps,
@@ -257,28 +215,24 @@ if ($action === 'stats') {
 
 // ── BACKUP_UPLOAD (nhận nội dung .bak từ extension, lưu vào thư mục backup/) ──
 // POST { action, filename?, data }
-// data = nội dung file .bak (string JSON đã mã hoá hoặc plain)
 if ($action === 'backup_upload') {
     $data     = $input['data']     ?? '';
     $filename = trim($input['filename'] ?? '');
 
     if ($data === '') fail('Thiếu data');
 
-    // Tạo tên file an toàn
     if ($filename === '') {
         $filename = 'cookie-backup-' . date('Y-m-d_His') . '.bak';
     } else {
-        // Chỉ giữ ký tự an toàn, bắt buộc đuôi .bak
         $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
         if (!str_ends_with(strtolower($filename), '.bak')) $filename .= '.bak';
     }
 
     $path = $backupDir . $filename;
 
-    // Không cho ghi đè — nếu trùng tên thì thêm timestamp
     if (file_exists($path)) {
-        $base  = basename($filename, '.bak');
-        $path  = $backupDir . $base . '_' . date('His') . '.bak';
+        $base     = basename($filename, '.bak');
+        $path     = $backupDir . $base . '_' . date('His') . '.bak';
         $filename = basename($path);
     }
 
@@ -295,8 +249,7 @@ if ($action === 'backup_upload') {
 // ── BACKUP_LIST (liệt kê các file .bak trong thư mục backup/) ─────────────────
 // GET ?action=backup_list
 if ($action === 'backup_list') {
-    $files  = glob($backupDir . '*.bak') ?: [];
-    // Sắp xếp mới nhất lên đầu
+    $files = glob($backupDir . '*.bak') ?: [];
     usort($files, fn($a, $b) => filemtime($b) - filemtime($a));
 
     $result = [];
@@ -307,6 +260,7 @@ if ($action === 'backup_list') {
             'created_at' => date('c', filemtime($file))
         ];
     }
+
     ok(['backups' => $result, 'count' => count($result)]);
 }
 
@@ -316,7 +270,6 @@ if ($action === 'backup_download') {
     $filename = trim($_GET['filename'] ?? $_REQUEST['filename'] ?? $input['filename'] ?? '');
     if ($filename === '') fail('Thiếu filename');
 
-    // Chặn path traversal
     $filename = basename($filename);
     if (!str_ends_with(strtolower($filename), '.bak')) fail('Chỉ hỗ trợ file .bak');
 
@@ -336,7 +289,7 @@ if ($action === 'backup_delete') {
     $filename = trim($input['filename'] ?? $_REQUEST['filename'] ?? '');
     if ($filename === '') fail('Thiếu filename');
 
-    $filename = basename($filename); // chặn path traversal
+    $filename = basename($filename);
     if (!str_ends_with(strtolower($filename), '.bak')) fail('Chỉ hỗ trợ file .bak');
 
     $path = $backupDir . $filename;
