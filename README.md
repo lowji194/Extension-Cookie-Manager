@@ -1,6 +1,7 @@
 # 🍪 Cookie Manager Pro
 
 > Chrome Extension · Manifest V3 · v4.0
+
 ![Hình ảnh dự án](image.png)
 
 Quản lý, lưu, import/export và đăng xuất cookie theo từng trang web — hỗ trợ đồng bộ Cloud với mã hoá AES-256.
