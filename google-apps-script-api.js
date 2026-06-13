@@ -1,10 +1,10 @@
-const DATA_SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // ← Thay bằng ID của Spreadsheet
-const BACKUP_FOLDER_ID = 'YOUR_BACKUP_FOLDER_ID_HERE';   // ← Thay bằng ID thư mục Drive (tùy chọn)
+const DATA_SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+const BACKUP_FOLDER_ID = 'YOUR_BACKUP_FOLDER_ID_HERE'; // Tùy chọn
+const API_SECRET_KEY = 'D08E4FAA'; // ← Đổi key giống PHP
 
 function doGet(e) {
   return handleRequest(e);
 }
-
 function doPost(e) {
   return handleRequest(e);
 }
@@ -12,7 +12,7 @@ function doPost(e) {
 function handleRequest(e) {
   const params = e.parameter;
   let input = {};
-  
+
   try {
     if (e.postData && e.postData.contents) {
       input = JSON.parse(e.postData.contents);
@@ -24,19 +24,17 @@ function handleRequest(e) {
   try {
     switch (action) {
       case 'ping': return ok({ status: 'ok', message: 'Google Apps Script Cookie API v2' });
-
       case 'save': return saveSnapshot(params, input);
       case 'delete': return deleteSnapshot(params, input);
       case 'delete_web': return deleteWeb(params, input);
+      case 'get': return getAllData(params, input);           // ← Đã sửa theo PHP
+      case 'get_one': return getSnapshot(params, input);      // Giữ lại để lấy 1 snapshot
       case 'list': return listSheets(params, input);
-      case 'get': return getSnapshot(params, input);
-      case 'get_all': return getAllSnapshots(params, input);
       case 'stats': return getStats();
       case 'backup_upload': return backupUpload(params, input);
       case 'backup_list': return backupList();
       case 'backup_download': return backupDownload(params, input);
       case 'backup_delete': return backupDelete(params, input);
-
       default:
         return fail('Action không hợp lệ: ' + action);
     }
@@ -47,7 +45,6 @@ function handleRequest(e) {
 }
 
 // ==================== HELPERS ====================
-
 function getSpreadsheet() {
   return SpreadsheetApp.openById(DATA_SPREADSHEET_ID);
 }
@@ -56,7 +53,6 @@ function getBackupFolder() {
   if (BACKUP_FOLDER_ID) {
     return DriveApp.getFolderById(BACKUP_FOLDER_ID);
   }
-  // Tạo folder tự động nếu chưa có
   const folders = DriveApp.getFoldersByName('Cookie Backups');
   if (folders.hasNext()) return folders.next();
   return DriveApp.createFolder('Cookie Backups');
@@ -68,8 +64,14 @@ function sanitizeWeb(web) {
     .toLowerCase();
 }
 
-// ==================== ACTIONS ====================
+function validateKey(params, input) {
+  const key = params.key || input.key || '';
+  if (key !== API_SECRET_KEY) {
+    throw new Error('Xác thực thất bại: key không hợp lệ');
+  }
+}
 
+// ==================== RESPONSES ====================
 function ok(data = {}) {
   return ContentService.createTextOutput(JSON.stringify({ success: true, ...data }))
     .setMimeType(ContentService.MimeType.JSON);
@@ -80,6 +82,8 @@ function fail(error, code = 200) {
   output.setMimeType(ContentService.MimeType.JSON);
   return output;
 }
+
+// ==================== ACTIONS ====================
 
 // SAVE
 function saveSnapshot(params, input) {
@@ -119,11 +123,10 @@ function saveSnapshot(params, input) {
   return ok({ message: found ? 'Đã cập nhật' : 'Đã tạo mới', created: !found });
 }
 
-// DELETE ONE SNAPSHOT
+// DELETE ONE
 function deleteSnapshot(params, input) {
   const web = sanitizeWeb(params.web || input.web || '');
   const name = (params.name || input.name || '').trim();
-
   if (!web || !name) return fail('Thiếu web hoặc name');
 
   const ss = getSpreadsheet();
@@ -140,7 +143,7 @@ function deleteSnapshot(params, input) {
   return fail('Không tìm thấy snapshot');
 }
 
-// DELETE WHOLE WEB
+// DELETE WEB
 function deleteWeb(params, input) {
   const web = sanitizeWeb(params.web || input.web || '');
   if (!web) return fail('Thiếu web');
@@ -148,17 +151,15 @@ function deleteWeb(params, input) {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName(web);
   if (sheet) ss.deleteSheet(sheet);
-
   return ok({ message: 'Đã xoá toàn bộ dữ liệu của ' + web });
 }
 
 // LIST
 function listSheets(params, input) {
   const web = sanitizeWeb(params.web || input.web || '');
+  const ss = getSpreadsheet();
 
   if (web) {
-    // List snapshots của một web
-    const ss = getSpreadsheet();
     const sheet = ss.getSheetByName(web);
     if (!sheet) return ok({ sheets: [], count: 0 });
 
@@ -168,18 +169,15 @@ function listSheets(params, input) {
       time: row[1],
       savedAt: row[4]
     }));
-
     return ok({ sheets: result, count: result.length });
   }
 
   // List tất cả web
-  const ss = getSpreadsheet();
   const sheets = ss.getSheets();
   const result = [];
-
   sheets.forEach(sheet => {
     const name = sheet.getName();
-    if (name === 'Sheet1' || name.startsWith('_')) return; // skip default
+    if (name === 'Sheet1' || name.startsWith('_')) return;
     const count = Math.max(0, sheet.getLastRow() - 1);
     if (count > 0) {
       result.push({
@@ -189,15 +187,13 @@ function listSheets(params, input) {
       });
     }
   });
-
   return ok({ sheets: result });
 }
 
-// GET ONE
+// GET ONE SNAPSHOT (giữ nguyên để tương thích)
 function getSnapshot(params, input) {
   const web = sanitizeWeb(params.web || input.web || '');
   const name = (params.name || input.name || '').trim();
-
   if (!web) return fail('Thiếu web');
 
   const ss = getSpreadsheet();
@@ -205,13 +201,9 @@ function getSnapshot(params, input) {
   if (!sheet) return fail('Không có dữ liệu cho web này');
 
   const data = sheet.getDataRange().getValues();
-
-  let snap;
-  if (name) {
-    snap = data.find(row => row[0] === name);
-  } else {
-    snap = data[data.length - 1]; // last row
-  }
+  let snap = name 
+    ? data.find(row => row[0] === name) 
+    : data[data.length - 1];
 
   if (!snap) return fail('Không tìm thấy snapshot');
 
@@ -225,25 +217,41 @@ function getSnapshot(params, input) {
   });
 }
 
-// GET ALL
-function getAllSnapshots(params, input) {
-  const web = sanitizeWeb(params.web || input.web || '');
-  if (!web) return fail('Thiếu web');
+// GET ALL DATA (mới - giống PHP)
+function getAllData(params, input) {
+  validateKey(params, input);   // Yêu cầu key bảo mật
 
   const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName(web);
-  if (!sheet) return ok({ snapshots: [], count: 0 });
+  const sheets = ss.getSheets();
+  const result = [];
 
-  const data = sheet.getDataRange().getValues();
-  const result = data.slice(1).map(row => ({
-    name: row[0],
-    savedAt: row[4],
-    time: row[1],
-    timerISO: row[2],
-    cookies: row[3]
-  }));
+  sheets.forEach(sheet => {
+    const sheetName = sheet.getName();
+    if (sheetName === 'Sheet1' || sheetName.startsWith('_')) return;
 
-  return ok({ snapshots: result, count: result.length });
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return;
+
+    const snapshots = data.slice(1).map(row => ({
+      name: row[0] || '',
+      time: row[1] || '',
+      timerISO: row[2] || '',
+      cookies: row[3] || '',
+      savedAt: row[4] || ''
+    }));
+
+    result.push({
+      web: sheetName.replace(/_/g, '.'),
+      count: snapshots.length,
+      snapshots: snapshots
+    });
+  });
+
+  return ok({
+    total_webs: result.length,
+    total_snapshots: result.reduce((sum, r) => sum + r.count, 0),
+    data: result
+  });
 }
 
 // STATS
@@ -271,7 +279,6 @@ function getStats() {
 }
 
 // ==================== BACKUP ====================
-
 function backupUpload(params, input) {
   const data = input.data || '';
   let filename = (input.filename || '').trim();
@@ -285,8 +292,8 @@ function backupUpload(params, input) {
   }
 
   const folder = getBackupFolder();
-  const file = folder.createFile(filename, data, MimeType.PLAIN_TEXT);
-  
+  let file = folder.createFile(filename, data, MimeType.PLAIN_TEXT);
+
   return ok({
     message: 'Đã lưu backup',
     filename: filename,
@@ -310,20 +317,17 @@ function backupList() {
     }
   }
 
-  // Sort newest first
   result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
   return ok({ backups: result, count: result.length });
 }
 
 function backupDownload(params, input) {
   const filename = (params.filename || input.filename || '').trim();
-  if (!filename) return fail('Thiếu filename');
-  if (!filename.toLowerCase().endsWith('.bak')) return fail('Chỉ hỗ trợ file .bak');
+  if (!filename || !filename.toLowerCase().endsWith('.bak')) 
+    return fail('Thiếu filename hoặc sai định dạng .bak');
 
   const folder = getBackupFolder();
   const files = folder.getFilesByName(filename);
-  
   if (!files.hasNext()) return fail('Không tìm thấy file: ' + filename);
 
   const file = files.next();
@@ -336,12 +340,11 @@ function backupDownload(params, input) {
 
 function backupDelete(params, input) {
   const filename = (params.filename || input.filename || '').trim();
-  if (!filename) return fail('Thiếu filename');
-  if (!filename.toLowerCase().endsWith('.bak')) return fail('Chỉ hỗ trợ file .bak');
+  if (!filename || !filename.toLowerCase().endsWith('.bak')) 
+    return fail('Thiếu filename hoặc sai định dạng .bak');
 
   const folder = getBackupFolder();
   const files = folder.getFilesByName(filename);
-  
   if (files.hasNext()) {
     files.next().setTrashed(true);
     return ok({ message: 'Đã xoá ' + filename });
