@@ -1,189 +1,139 @@
-[![🇺🇸 English](https://img.shields.io/badge/Language-English-blue?style=for-the-badge&logo=Google%20Translate)](README-EN.md)
+# 🍪 Cookie Manager Pro
 
-# Extension Cookie Manager
-
-Extension này giúp bạn quản lý cookie dễ dàng với các chức năng lưu trữ và tải cookie từ Google Drive nếu bạn đã thiết lập API.
-
+> Chrome Extension · Manifest V3 · v4.0
 ![Hình ảnh dự án](image.png)
 
-## Sử dụng
+Quản lý, lưu, import/export và đăng xuất cookie theo từng trang web — hỗ trợ đồng bộ Cloud với mã hoá AES-256.
 
-- Nhấn vào button **Save Cookie** để lưu cookie hiện tại và Upload lên Google Drive nếu bạn đã cài đặt API.
-- Nhấn vào button **Cloud** để tải cookie từ Google Drive về Extension.
+---
 
-### Hướng dẫn cài đặt API Appscript (Có thể bỏ qua nếu không sử dụng tính năng Cloud)
+## ✨ Tính năng
 
-1. **Tạo Dự Án Mới Trên Google Apps Script:**
-   - Truy cập [Google Apps Script](https://script.google.com/).
-   - Nhấn vào nút “New project” để tạo một dự án mới.
+### 📋 Quản lý Cookie cục bộ
+- Xem toàn bộ cookie của trang hiện tại theo thời gian thực (tab **Live**)
+- Lưu cookie thành **snapshot** đặt tên tuỳ ý, ghi đè hoặc tạo mới
+- Import cookie từ file JSON; export snapshot ra JSON
+- Áp dụng lại snapshot bất kỳ chỉ bằng một cú click
+- Đăng xuất ngay lập tức bằng cách xoá toàn bộ cookie trang hiện tại
 
-2. **Dán Mã API:**
-   - Sao chép đoạn mã dưới đây và dán vào trình soạn thảo mã của dự án vừa tạo:
+### ⏰ Hẹn giờ (Timer)
+- Đặt hẹn giờ cho snapshot đang bị giới hạn — đồng hồ đếm ngược đến thời điểm tài khoản hết bị hạn và có thể dùng lại
+- Thẻ snapshot tự động đổi trạng thái khi hết giờ, báo hiệu tài khoản đã sẵn sàng
+- Thêm ghi chú kèm theo để nhớ lý do bị giới hạn
 
-```javascript
-var FolderName = "";      // Thay tên thư mục lưu trữ của bạn
-var ExpectedKey = "";  // Thay bằng key bảo mật của bạn
+### ☁️ Đồng bộ Cloud
+- Đẩy/kéo snapshot lên server qua API (PHP hoặc Google Apps Script)
+- Cookie được **mã hoá AES-256** bằng passphrase trước khi gửi đi
+- Hỗ trợ URL API cứng (hardcode) hoặc nhập tay trong giao diện
+- Quản lý danh sách snapshot cloud, xoá từng mục hoặc toàn bộ web
 
-function getFolderIdByName(foldername) {
-  var folders = DriveApp.getFoldersByName(foldername);
-  
-  if (folders.hasNext()) {
-    var folder = folders.next();
-    Logger.log("Folder ID: " + folder.getId());
-    return folder.getId();
-  } else {
-    Logger.log("Không tìm thấy thư mục!");
-    return null;
-  }
-}
+### 💾 Backup & Restore
+- Xuất toàn bộ dữ liệu ra file `.bak` và lưu lên server backup
+- Tải về + khôi phục file `.bak` từ danh sách backup trên server
+- Xoá từng file backup không cần thiết
 
-function doPost(e) {
-  var folderId = getFolderIdByName(FolderName);
-  var folder = DriveApp.getFolderById(folderId);
-  
-  try {
-    var params = JSON.parse(e.postData.contents);
-    var filename = params.filename;
-    var jsonData = params.data;
-    var secretKey = params.key;
-    
-    if (secretKey !== ExpectedKey) {
-      return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": "Unauthorized"}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    // Tạo blob từ dữ liệu JSON
-    var fileBlob = Utilities.newBlob(JSON.stringify(jsonData, null, 2), "application/json", filename);
-    
-    // Kiểm tra xem file đã tồn tại chưa
-    var files = folder.getFilesByName(filename);
-    var file;
-    
-    if (files.hasNext()) {
-      // Nếu file tồn tại, xóa file cũ và tạo file mới
-      file = files.next();
-      file.setTrashed(true); // Xóa file cũ vào thùng rác
-      file = folder.createFile(fileBlob); // Tạo file mới
-    } else {
-      // Nếu file không tồn tại, tạo file mới
-      file = folder.createFile(fileBlob);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({"status": "success", "fileUrl": file.getUrl()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": error.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+---
 
-function doGet(e) {
-  var folderId = getFolderIdByName(FolderName);
-  var folder = DriveApp.getFolderById(folderId);
-  
-  try {
-    var params = e.parameter;
-    var secretKey = params.key;
-    var filename = params.filename; // Tên file cụ thể nếu được cung cấp
-    
-    if (secretKey !== ExpectedKey) {
-      return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": "Unauthorized"}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (filename) {
-      // Lấy nội dung của một file cụ thể
-      var files = folder.getFilesByName(filename);
-      if (files.hasNext()) {
-        var file = files.next();
-        var content = file.getBlob().getDataAsString();
-        return ContentService.createTextOutput(JSON.stringify({"status": "success", "data": content}))
-          .setMimeType(ContentService.MimeType.JSON);
-      } else {
-        return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": "File not found"}))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-    } else {
-      // Lấy danh sách và nội dung tất cả các file
-      var files = folder.getFiles();
-      var fileList = [];
-      
-      while (files.hasNext()) {
-        var file = files.next();
-        var content = file.getBlob().getDataAsString(); // Lấy nội dung file
-        fileList.push({
-          name: file.getName(),
-          lastUpdated: file.getLastUpdated().toISOString(),
-          content: content  // Thêm nội dung file vào kết quả
-        });
-      }
-      
-      return ContentService.createTextOutput(JSON.stringify({"status": "success", "files": fileList}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": error.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+## 🚀 Cài đặt Extension
+
+1. Tải và giải nén `Cookies-Manager.zip`
+2. Mở Chrome → `chrome://extensions/` → bật **Developer mode**
+3. Nhấn **Load unpacked** → chọn thư mục vừa giải nén
+4. Ghim extension lên thanh công cụ và dùng ngay
+
+---
+
+## 🔧 Triển khai API
+
+Chọn **một** trong hai phương án bên dưới.
+
+---
+
+### Phương án 1 — PHP (tự host)
+
+**Yêu cầu:** PHP 8.0+, web server có quyền ghi file.
+
+**Bước 1 — Upload file**
+
 ```
-3. **Triển Khai Dự Án:**
-   - Nhấn vào nút “Deploy” và chọn “New deployment”.
-   - Chọn “Web app” và điền các thông tin cần thiết.
-   - Thiết lập "Who has access" thành "Anyone".
-
-4. **Sử Dụng API:**
-   - API có hai phương thức chính `doPost` và `doGet`.
-     - `doPost`: Dùng để tải file JSON lên Google Drive.
-     - `doGet`: Dùng để lấy danh sách file hoặc nội dung của một file cụ thể từ Google Drive.
-   - Đảm bảo truyền đúng `FolderName` và `ExpectedKey` khi sử dụng API.
-
-### Lưu Ý:
-- Thay đổi `FolderName` và `ExpectedKey` với giá trị phù hợp của bạn.
-- Đảm bảo thư mục lưu trữ đã được tạo trong Google Drive.
-
-Dưới đây là đoạn hướng dẫn bổ sung:
-
-### Lấy Link API và ExpectedKey
-
-1. **Lấy Link API:**
-   - Sau khi triển khai dự án Appscript, bạn sẽ nhận được link API từ mục "Deployments".
-   - Sao chép link đó và lưu lại để sử dụng.
-
-2. **Lấy ExpectedKey:**
-   - Sử dụng `ExpectedKey` mà bạn đã định nghĩa trong mã Appscript. Trong mã mẫu này, `ExpectedKey`
-
-### Thay vào `cloudUrl` và `secretKey` trong extension
-
-1. **Mở File `popup.js`:**
-   - Điều hướng đến thư mục `assets` trong extension của bạn và mở file `popup.js`.
-
-2. **Thay Thế `cloudUrl` và `secretKey`:**
-   - Tìm và thay thế giá trị của `cloudUrl` bằng link API bạn đã lấy ở bước trên.
-   - Tìm và thay thế giá trị của `secretKey` bằng `ExpectedKey` của bạn.
-
-```javascript
-const cloudUrl = "YOUR_API_LINK_HERE"; // Thay bằng link API của bạn
-const secretKey = "YOUR_SECRET_HERE"; // Thay bằng ExpectedKey của bạn
+your-server.com/
+└── api.php
+└── cookies_data/   ← tự tạo, cần quyền write
+└── backup/         ← tự tạo, cần quyền write
 ```
 
-3. **Xóa Comment Các Hàm `fetchFromCloud` và `uploadToDrive`:**
-   - Kéo xuống dưới cùng của file `popup.js`.
-   - Tìm các hàm `fetchFromCloud` và `uploadToDrive`, xóa comment ở đầu (`/*`) và ở cuối (`*/`) để kích hoạt
+Upload `api.php` lên hosting. Hai thư mục `cookies_data/` và `backup/` sẽ tự tạo khi API chạy lần đầu (nếu web server có quyền ghi). Nếu không, tạo tay và `chmod 755`.
 
-```javascript
-async function fetchFromCloud() {
-  // Nội dung hàm
-}
+**Bước 2 — Kiểm tra**
 
-async function uploadToDrive() {
-  // Nội dung hàm
-}
+```bash
+curl "https://your-server.com/api.php?action=ping"
+# {"success":true,"status":"ok","message":"PHP Cookie API v2"}
 ```
 
-### Lưu Và Kiểm Tra
+**Bước 3 — Điền vào Extension**
 
-- Sau khi thực hiện các bước trên, lưu lại file `popup.js`.
-- Khởi động lại extension của bạn và kiểm tra xem các chức năng đã hoạt động đúng chưa.
+Mở extension → tab **Cloud** → nhập URL:
 
-Chúc bạn thành công!
+```
+https://your-server.com/api.php
+```
+
+---
+
+### Phương án 2 — Google Apps Script (miễn phí)
+
+**Yêu cầu:** Tài khoản Google, một Google Spreadsheet để lưu dữ liệu.
+
+**Bước 1 — Tạo Spreadsheet**
+
+Tạo một Google Spreadsheet mới → copy **Spreadsheet ID** từ URL:
+
+```
+https://docs.google.com/spreadsheets/d/SPREADSHEET_ID_HERE/edit
+```
+
+**Bước 2 — Tạo Apps Script**
+
+Trong Spreadsheet → menu **Extensions → Apps Script** → xoá code mặc định → dán toàn bộ nội dung file `google-apps-script-api.js`.
+
+**Bước 3 — Điền ID**
+
+Ở đầu file script, thay hai hằng số:
+
+```js
+const DATA_SPREADSHEET_ID = 'SPREADSHEET_ID_HERE'; // ID spreadsheet ở bước 1
+const BACKUP_FOLDER_ID    = 'FOLDER_ID_HERE';       // ID thư mục Drive (để trống '' nếu bỏ qua)
+```
+
+**Bước 4 — Deploy**
+
+1. Nhấn **Deploy → New deployment**
+2. Type: **Web app**
+3. Execute as: **Me** · Who has access: **Anyone**
+4. Nhấn **Deploy** → copy **Web app URL**
+
+**Bước 5 — Kiểm tra**
+
+```bash
+curl "https://script.google.com/macros/s/.../exec?action=ping"
+# {"success":true,"status":"ok","message":"Google Apps Script Cookie API v2"}
+```
+
+**Bước 6 — Điền vào Extension**
+
+Mở extension → tab **Cloud** → nhập Web app URL vừa copy.
+
+---
+
+## 🔐 Bảo mật
+
+- Cookie lưu cloud được mã hoá **AES-256** phía client trước khi truyền đi — server không thể đọc nội dung raw.
+- Đặt passphrase mạnh và không chia sẻ.
+- Với PHP: nên đặt `.htaccess` chặn truy cập trực tiếp vào thư mục `cookies_data/` và `backup/`.
+
+---
+
+## 📄 License
+
+MIT
