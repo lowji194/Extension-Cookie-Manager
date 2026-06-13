@@ -1,6 +1,6 @@
 const DATA_SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
 const BACKUP_FOLDER_ID = 'YOUR_BACKUP_FOLDER_ID_HERE'; // Tùy chọn
-const API_SECRET_KEY = 'D08E4FAA'; // ← Đổi key giống PHP
+const API_SECRET_KEY = 'YOUR_KEY'; 
 
 function doGet(e) {
   return handleRequest(e);
