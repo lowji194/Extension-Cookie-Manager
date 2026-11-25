@@ -118,3 +118,13 @@ Tiện ích chỉ yêu cầu các quyền hạn tối thiểu phục vụ đúng
 ## 📄 Giấy phép / License
 
 Dự án được phát hành theo giấy phép **MIT License**.
+
+---
+
+## ☕ Buy me a coffee
+
+Nếu dự án này hữu ích với bạn, hãy mời mình một ly cà phê để ủng hộ việc duy trì và phát triển dự án. Cảm ơn bạn!
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/lowji194/lowji194/main/assets/donate-qr.svg"><img src="https://raw.githubusercontent.com/lowji194/lowji194/main/assets/donate-qr.svg" width="300" alt="Donate — scan the QR code"></a>
+</p>
