@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Cookie Manager",
+    "description": "Extension display name on Chrome Web Store and browser extensions page"
+  },
+  "extDesc": {
+    "message": "Save, switch, import/export, and back up site cookies locally with AES-256 encryption. 100% offline, no cloud.",
+    "description": "Short extension description for Chrome Web Store"
+  }
+}

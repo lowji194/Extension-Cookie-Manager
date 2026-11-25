@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Cookie Manager",
+    "description": "Tên hiển thị của tiện ích trên Chrome Web Store"
+  },
+  "extDesc": {
+    "message": "Lưu, chuyển đổi, nhập/xuất và sao lưu cookie cục bộ theo từng trang web với mã hoá AES-256. 100% ngoại tuyến.",
+    "description": "Mô tả ngắn của tiện ích trên Chrome Web Store"
+  }
+}

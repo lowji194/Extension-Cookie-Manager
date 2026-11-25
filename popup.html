@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cookie Manager</title>
+  <script src="assets/crypto-js.min.js"></script>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
+        <path d="M8.5 8.5v.01"/>
+        <path d="M16 15.5v.01"/>
+        <path d="M12 12v.01"/>
+        <path d="M11 17v.01"/>
+        <path d="M7 14v.01"/>
+      </svg>
+    </div>
+    <div class="hdr-meta">
+      <div class="hdr-title-row">
+        <span class="hdr-title">Cookie Manager</span>
+        <span class="hdr-ver">v7.5</span>
+      </div>
+      <div class="hdr-sub" id="hdr-sub">Detecting current tab...</div>
+    </div>
+    <span class="hdr-badge" id="hdr-badge" style="display:none">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      <span id="hdr-badge-text">Live</span>
+    </span>
+    <button type="button" class="lang-switch" id="btn-lang-toggle" title="Switch language (EN / VI)" aria-label="Switch language">
+      <span class="lang-opt active" id="lang-en">EN</span>
+      <span class="lang-opt" id="lang-vi">VI</span>
+    </button>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist" aria-label="Main sections">
+    <button type="button" class="tab active" role="tab" aria-selected="true" data-tab="saved">
+      <svg class="ico ico-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+        <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+        <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+      </svg>
+      <span id="lbl-tab-saved">Saved</span>
+      <span class="tab-count" id="tab-saved-count" style="display:none">0</span>
+    </button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-tab="live">
+      <svg class="ico ico-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+      </svg>
+      <span id="lbl-tab-live">Current</span>
+      <span class="tab-count" id="tab-live-count" style="display:none">0</span>
+    </button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-tab="backup">
+      <svg class="ico ico-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+        <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+        <line x1="6" x2="6.01" y1="6" y2="6"/>
+        <line x1="6" x2="6.01" y1="18" y2="18"/>
+      </svg>
+      <span id="lbl-tab-backup">Backup</span>
+    </button>
+  </nav>
+
+  <!-- Panel: Saved Snapshots -->
+  <section class="panel active" id="panel-saved" role="tabpanel">
+    <div class="save-bar">
+      <input class="inp" id="snap-name" placeholder="Session name (leave blank to overwrite)..." autocomplete="off" />
+      <button type="button" class="btn btn-primary" id="btn-save">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+          <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/>
+          <path d="M7 3v4a1 1 0 0 0 1 1h7"/>
+        </svg>
+        <span id="lbl-btn-save">Save</span>
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" class="btn btn-soft-info btn-sm" id="btn-import-json">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" x2="12" y1="3" y2="15"/>
+        </svg>
+        <span id="lbl-btn-import">Import JSON</span>
+      </button>
+
+      <button type="button" class="btn btn-soft-danger btn-sm" id="btn-logout" title="Expire all cookies on this site to sign out">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" x2="9" y1="12" y2="12"/>
+        </svg>
+        <span id="lbl-btn-logout">Sign out</span>
+      </button>
+
+      <label class="filter-toggle" id="wrap-filter-toggle" title="Show only snapshots for the active website">
+        <span class="toggle-wrap">
+          <input type="checkbox" id="toggle-current-site" />
+          <span class="toggle-slider"></span>
+        </span>
+        <span class="filter-toggle-label" id="lbl-only-site">This site</span>
+      </label>
+
+      <div class="toolbar-right">
+        <button type="button" class="btn btn-neutral btn-icon" id="btn-reload-saved" title="Refresh list" aria-label="Refresh list">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+            <path d="M8 16H3v5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="import-zone" id="import-zone" role="button" tabindex="0">
+      <div class="iz-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <path d="M12 12v6"/>
+          <path d="m15 15-3-3-3 3"/>
+        </svg>
+      </div>
+      <div class="iz-txt" id="lbl-drop-json">Drop a <strong>.json</strong> file here or click to browse</div>
+    </div>
+    <input type="file" id="json-file-input" accept=".json,application/json" />
+
+    <div id="saved-loading" class="loading" style="display:none">
+      <div class="spinner"></div>
+      <span id="lbl-saved-loading">Loading snapshots...</span>
+    </div>
+    <div id="saved-content"></div>
+    <div id="saved-empty" class="empty" style="display:none"></div>
+  </section>
+
+  <!-- Panel: Live Cookies -->
+  <section class="panel" id="panel-live" role="tabpanel">
+    <div class="live-top-bar" id="live-top-bar" style="display:none">
+      <div class="live-site-group">
+        <div class="page-chip" id="live-page-chip">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="live-hostname"></span>
+        </div>
+        <button type="button" class="btn btn-neutral btn-xs" id="btn-copy-all-live" style="display:none" title="Copy all cookies (name=value; ...)">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+          <span id="lbl-btn-copy-all-live">Copy</span>
+        </button>
+      </div>
+      <span class="count-pill" id="live-count-chip">0 cookies</span>
+    </div>
+
+    <div class="search-wrap">
+      <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input class="inp inp-search" id="live-search" placeholder="Search by name, value, domain..." autocomplete="off" />
+      <button type="button" class="search-clear" id="live-search-clear" style="display:none" title="Clear search" aria-label="Clear search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="live-loading" class="loading">
+      <div class="spinner"></div>
+      <span id="lbl-live-loading">Reading cookies...</span>
+    </div>
+    <div id="live-list" style="display:none"></div>
+    <div id="live-empty" class="empty" style="display:none"></div>
+  </section>
+
+  <!-- Panel: Local Backup & Restore -->
+  <section class="panel" id="panel-backup" role="tabpanel">
+    <div class="privacy-pill">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+      <span id="lbl-privacy-pill">100% local on your device — zero external servers or tracking</span>
+    </div>
+
+    <div class="backup-stats" id="backup-stats">
+      <div class="bstat">
+        <div class="bstat-v" id="bstat-cookies">—</div>
+        <div class="bstat-l" id="lbl-stat-cookies">Browser cookies</div>
+      </div>
+      <div class="bstat">
+        <div class="bstat-v" id="bstat-sites">—</div>
+        <div class="bstat-l" id="lbl-stat-sites">Websites</div>
+      </div>
+      <div class="bstat">
+        <div class="bstat-v" id="bstat-snaps">—</div>
+        <div class="bstat-l" id="lbl-stat-snaps">Saved snapshots</div>
+      </div>
+    </div>
+
+    <div class="backup-section">
+      <div class="backup-section-title">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" x2="12" y1="15" y2="3"/>
+        </svg>
+        <span id="lbl-export-title">Export backup file (.bak)</span>
+      </div>
+
+      <div class="backup-field">
+        <label class="field-lbl" for="bak-backup-name" id="lbl-bak-name">File name (optional)</label>
+        <input class="inp" id="bak-backup-name" placeholder="e.g. cookie-backup-2026-11-25" autocomplete="off" />
+      </div>
+
+      <div class="backup-field">
+        <label class="field-lbl" for="bak-export-password" id="lbl-bak-pw">
+          AES-256 encryption password <span class="field-opt">(leave empty for plain)</span>
+        </label>
+        <div class="pw-input-wrap">
+          <input class="inp" type="password" id="bak-export-password" placeholder="Optional password to protect backup..." autocomplete="new-password" />
+          <button type="button" class="pw-toggle" id="btn-toggle-bak-pw" title="Show/hide password" aria-label="Show/hide password">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-full" id="btn-do-export-file">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" x2="12" y1="15" y2="3"/>
+        </svg>
+        <span id="lbl-btn-export-bak">Download backup file (.bak)</span>
+      </button>
+
+      <div class="backup-progress" id="bak-export-progress">
+        <div class="backup-progress-bar" id="bak-export-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="backup-section">
+      <div class="backup-section-title">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        <span id="lbl-restore-title">Restore from file (.bak)</span>
+      </div>
+
+      <div class="backup-drop" id="backup-drop-zone" role="button" tabindex="0">
+        <div class="backup-drop-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" x2="12" y1="3" y2="15"/>
+          </svg>
+        </div>
+        <div class="backup-drop-txt" id="lbl-drop-bak">
+          Drop a <strong>.bak</strong> file here or <strong>click to browse</strong>
+        </div>
+        <div class="backup-drop-sub" id="lbl-drop-bak-sub">Supports both AES-256 encrypted and unencrypted backups</div>
+      </div>
+
+      <input type="file" id="backup-restore-file" accept=".bak,.json" />
+      <div class="backup-progress" id="bak-import-progress">
+        <div class="backup-progress-bar" id="bak-import-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reusable Dialog Modal (Alert / Confirm / Prompt) -->
+  <div class="overlay hidden" id="app-dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+    <div class="modal">
+      <div class="modal-hdr">
+        <div class="modal-ico" id="dlg-ico" aria-hidden="true"></div>
+        <div>
+          <h3 id="dlg-title"></h3>
+          <p class="modal-sub" id="dlg-sub" style="display:none"></p>
+        </div>
+      </div>
+      <div class="dlg-body" id="dlg-body"></div>
+      <div class="mfield" id="dlg-input-wrap" style="display:none">
+        <label class="mlabel" id="dlg-input-label" for="dlg-input"></label>
+        <input class="minp" id="dlg-input" autocomplete="off" />
+        <div class="dlg-err" id="dlg-err" style="display:none"></div>
+      </div>
+      <div class="mactions" id="dlg-actions">
+        <button type="button" class="btn btn-neutral" id="dlg-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="dlg-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span id="lbl-footer-prefix">Local storage only · Built by </span>
+    <a href="https://theloi.io.vn/" target="_blank" rel="noopener noreferrer">Nguyễn Thế Lợi</a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

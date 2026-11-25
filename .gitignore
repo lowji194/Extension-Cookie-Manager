@@ -1,0 +1,5 @@
+.codex-backup-20261023-restore-fidelity/
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
